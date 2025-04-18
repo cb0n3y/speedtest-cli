@@ -1030,7 +1030,8 @@ class SpeedtestResults(object):
             raise ShareResultsSubmitFailure('Could not submit results to '
                                             'speedtest.net')
 
-        self._share = 'http://www.speedtest.net/result/%s.png' % resultid[0]
+        # self._share = 'http://www.speedtest.net/result/%s.png' % resultid[0]
+        self._share = f'http://www.speedtest.net/result/{resultid[0]}.png'
 
         return self._share
 
