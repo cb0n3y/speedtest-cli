@@ -322,9 +322,9 @@ def event_is_set(event):
     """
     Check if the event is set.
 
-    This function attempts to call the `is_set` method on the provided event object.
-    If the `is_set` method is not available (AttributeError), it falls back to calling
-    the `isSet` method.
+    This function attempts to call the `is_set` method on the provided 
+    event object. If the `is_set` method is not available (AttributeError), 
+    it falls back to calling the `isSet` method.
 
     Args:
         event: The event object to check.
@@ -538,11 +538,11 @@ if HTTPSConnection:
                 # Python 2.4/2.5 support
                 try:
                     self.sock = FakeSocket(self.sock, socket.ssl(self.sock))
-                except AttributeError:
+                except AttributeError as exc:
                     raise SpeedtestException(
                         'This version of Python does not support HTTPS/SSL '
                         'functionality'
-                    )
+                    ) from exc
             else:
                 raise SpeedtestException(
                     'This version of Python does not support HTTPS/SSL '
