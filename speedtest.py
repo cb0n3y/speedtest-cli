@@ -944,6 +944,23 @@ class HTTPUploaderData(object):
         return self._data
 
     def read(self, n=10240):
+        """
+        Reads a chunk of data from the source.
+
+        This method reads up to `n` bytes of data if the elapsed time
+        is within the allowed timeout and the shutdown event has not been set.
+        It appends the length of the read data to `self.total`.
+
+        Args:
+            n (int, optional): The number of bytes to read. Defaults to 10240.
+
+        Returns:
+            bytes: A chunk of data read from the source.
+
+        Raises:
+            SpeedtestUploadTimeout: If the operation exceeds the timeout or
+            the shutdown event is set.
+        """
         if ((timeit.default_timer() - self.start) <= self.timeout and
                 not event_is_set(self._shutdown_event)):
             chunk = self.data.read(n)
