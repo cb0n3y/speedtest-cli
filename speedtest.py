@@ -850,7 +850,6 @@ def print_dots(shutdown_event):
 
 def do_nothing(*args, **kwargs):
     """Function that does nothing (placeholder)."""
-    pass
 
 
 class HTTPDownloader(threading.Thread):
