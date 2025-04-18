@@ -167,8 +167,6 @@ except ImportError:
             "Please install argparse for Python 2.x."
         ) from exc
 
-
-
 try:
     from cStringIO import StringIO
     BytesIO = None
@@ -321,6 +319,19 @@ else:
 
 
 def event_is_set(event):
+    """
+    Check if the event is set.
+
+    This function attempts to call the `is_set` method on the provided event object.
+    If the `is_set` method is not available (AttributeError), it falls back to calling
+    the `isSet` method.
+
+    Args:
+        event: The event object to check.
+
+    Returns:
+        bool: True if the event is set, False otherwise.
+    """
     try:
         return event.is_set()
     except AttributeError:
