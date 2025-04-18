@@ -678,7 +678,8 @@ def build_opener(source_address=None, timeout=10):
 
 
 class GzipDecodedResponse(GZIP_BASE):
-    """A file-like object to decode a response encoded with the gzip
+    """
+    A file-like object to decode a response encoded with the gzip
     method, as described in RFC 1952.
 
     Largely copied from ``xmlrpclib``/``xmlrpc.client`` and modified
