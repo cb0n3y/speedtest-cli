@@ -124,13 +124,28 @@ try:
 except ImportError:
     try:
         from urllib.parse import parse_qs
-    except ImportError:
-        from cgi import parse_qs
+    except ImportError as exc:
+        # from cgi import parse_qs
+        raise ImportError(
+            "Failed to import parse_qs from urllib.parse.") from exc
 
 try:
     from hashlib import md5
 except ImportError:
     from md5 import md5
+
+# try:
+#     from argparse import ArgumentParser as ArgParser
+#     from argparse import SUPPRESS as ARG_SUPPRESS
+#     PARSER_TYPE_INT = int
+#     PARSER_TYPE_STR = str
+#     PARSER_TYPE_FLOAT = float
+# except ImportError:
+#     from optparse import OptionParser as ArgParser
+#     from optparse import SUPPRESS_HELP as ARG_SUPPRESS
+#     PARSER_TYPE_INT = 'int'
+#     PARSER_TYPE_STR = 'string'
+#     PARSER_TYPE_FLOAT = 'float'
 
 try:
     from argparse import ArgumentParser as ArgParser
@@ -139,11 +154,20 @@ try:
     PARSER_TYPE_STR = str
     PARSER_TYPE_FLOAT = float
 except ImportError:
-    from optparse import OptionParser as ArgParser
-    from optparse import SUPPRESS_HELP as ARG_SUPPRESS
-    PARSER_TYPE_INT = 'int'
-    PARSER_TYPE_STR = 'string'
-    PARSER_TYPE_FLOAT = 'float'
+    # Fallback for Python 2.x where argparse may not be installed by default
+    try:
+        from optparse import OptionParser as ArgParser
+        from optparse import SUPPRESS_HELP as ARG_SUPPRESS
+        PARSER_TYPE_INT = 'int'
+        PARSER_TYPE_STR = 'string'
+        PARSER_TYPE_FLOAT = 'float'
+    except ImportError as exc:
+        raise ImportError(
+            "Neither argparse nor optparse are available."
+            "Please install argparse for Python 2.x."
+        ) from exc
+
+
 
 try:
     from cStringIO import StringIO
