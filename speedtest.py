@@ -647,12 +647,13 @@ def build_opener(source_address=None, timeout=10):
     `User-Agent`
     """
 
-    printer('Timeout set to %d' % timeout, debug=True)
+    printer(f'Timeout set to {timeout}', debug=True)
 
     if source_address:
         source_address_tuple = (source_address, 0)
-        printer('Binding to source address: %r' % (source_address_tuple,),
-                debug=True)
+        printer(
+            f'Binding to source address: {source_address_tuple!r}',
+            debug=True)
     else:
         source_address_tuple = None
 
