@@ -910,20 +910,23 @@ class HTTPUploaderData(object):
         self.total = [0]
 
     def pre_allocate(self):
+        """
+        Pre-allocate data for upload testing to reduce variability.
+
+        Attempts to fill a memory buffer with predetermined content.
+        Falls back with a SpeedtestCLIError if there is insufficient memory.
+        """
         chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
         multiplier = int(round(int(self.length) / 36.0))
         IO = BytesIO or StringIO
         try:
-            self._data = IO(
-                ('content1=%s' %
-                 (chars * multiplier)[0:int(self.length) - 9]
-                 ).encode()
-            )
-        except MemoryError:
+            content = f'content1={chars * multiplier}'[:int(self.length) - 9]
+            self._data = IO(content.encode())
+        except MemoryError as exc:
             raise SpeedtestCLIError(
                 'Insufficient memory to pre-allocate upload data. Please '
                 'use --no-pre-allocate'
-            )
+            ) from exc
 
     @property
     def data(self):
