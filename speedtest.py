@@ -614,6 +614,18 @@ class SpeedtestHTTPSHandler(AbstractHTTPHandler):
         self.timeout = timeout
 
     def https_open(self, req):
+        """
+        Opens an HTTPS connection to the specified request using a custom
+        HTTPS connection and handles the connection setup with the given
+        source address, timeout, and SSL context.
+
+        Args:
+            req: The HTTP request object that contains information about
+            the connection.
+
+        Returns:
+            The result of the `do_open` method which initiates the connection.
+        """
         return self.do_open(
             _build_connection(
                 SpeedtestHTTPSConnection,
