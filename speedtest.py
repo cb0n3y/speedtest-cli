@@ -124,13 +124,28 @@ try:
 except ImportError:
     try:
         from urllib.parse import parse_qs
-    except ImportError:
-        from cgi import parse_qs
+    except ImportError as exc:
+        # from cgi import parse_qs
+        raise ImportError(
+            "Failed to import parse_qs from urllib.parse.") from exc
 
 try:
     from hashlib import md5
 except ImportError:
     from md5 import md5
+
+# try:
+#     from argparse import ArgumentParser as ArgParser
+#     from argparse import SUPPRESS as ARG_SUPPRESS
+#     PARSER_TYPE_INT = int
+#     PARSER_TYPE_STR = str
+#     PARSER_TYPE_FLOAT = float
+# except ImportError:
+#     from optparse import OptionParser as ArgParser
+#     from optparse import SUPPRESS_HELP as ARG_SUPPRESS
+#     PARSER_TYPE_INT = 'int'
+#     PARSER_TYPE_STR = 'string'
+#     PARSER_TYPE_FLOAT = 'float'
 
 try:
     from argparse import ArgumentParser as ArgParser
@@ -139,11 +154,18 @@ try:
     PARSER_TYPE_STR = str
     PARSER_TYPE_FLOAT = float
 except ImportError:
-    from optparse import OptionParser as ArgParser
-    from optparse import SUPPRESS_HELP as ARG_SUPPRESS
-    PARSER_TYPE_INT = 'int'
-    PARSER_TYPE_STR = 'string'
-    PARSER_TYPE_FLOAT = 'float'
+    # Fallback for Python 2.x where argparse may not be installed by default
+    try:
+        from optparse import OptionParser as ArgParser
+        from optparse import SUPPRESS_HELP as ARG_SUPPRESS
+        PARSER_TYPE_INT = 'int'
+        PARSER_TYPE_STR = 'string'
+        PARSER_TYPE_FLOAT = 'float'
+    except ImportError as exc:
+        raise ImportError(
+            "Neither argparse nor optparse are available."
+            "Please install argparse for Python 2.x."
+        ) from exc
 
 try:
     from cStringIO import StringIO
@@ -297,6 +319,19 @@ else:
 
 
 def event_is_set(event):
+    """
+    Check if the event is set.
+
+    This function attempts to call the `is_set` method on the provided 
+    event object. If the `is_set` method is not available (AttributeError), 
+    it falls back to calling the `isSet` method.
+
+    Args:
+        event: The event object to check.
+
+    Returns:
+        bool: True if the event is set, False otherwise.
+    """
     try:
         return event.is_set()
     except AttributeError:
@@ -503,11 +538,11 @@ if HTTPSConnection:
                 # Python 2.4/2.5 support
                 try:
                     self.sock = FakeSocket(self.sock, socket.ssl(self.sock))
-                except AttributeError:
+                except AttributeError as exc:
                     raise SpeedtestException(
                         'This version of Python does not support HTTPS/SSL '
                         'functionality'
-                    )
+                    ) from exc
             else:
                 raise SpeedtestException(
                     'This version of Python does not support HTTPS/SSL '
@@ -543,6 +578,18 @@ class SpeedtestHTTPHandler(AbstractHTTPHandler):
         self.timeout = timeout
 
     def http_open(self, req):
+        """
+        Opens an HTTP connection to the specified request using a custom
+        connection and handles the connection setup with the given source
+        address and timeout.
+
+        Args:
+            req: The HTTP request object that contains information about
+            the connection.
+
+        Returns:
+            The result of the `do_open` method which initiates the connection.
+        """
         return self.do_open(
             _build_connection(
                 SpeedtestHTTPConnection,
@@ -567,6 +614,18 @@ class SpeedtestHTTPSHandler(AbstractHTTPHandler):
         self.timeout = timeout
 
     def https_open(self, req):
+        """
+        Opens an HTTPS connection to the specified request using a custom
+        HTTPS connection and handles the connection setup with the given
+        source address, timeout, and SSL context.
+
+        Args:
+            req: The HTTP request object that contains information about
+            the connection.
+
+        Returns:
+            The result of the `do_open` method which initiates the connection.
+        """
         return self.do_open(
             _build_connection(
                 SpeedtestHTTPSConnection,
@@ -581,18 +640,20 @@ class SpeedtestHTTPSHandler(AbstractHTTPHandler):
 
 
 def build_opener(source_address=None, timeout=10):
-    """Function similar to ``urllib2.build_opener`` that will build
+    """
+    Function similar to ``urllib2.build_opener`` that will build
     an ``OpenerDirector`` with the explicit handlers we want,
     ``source_address`` for binding, ``timeout`` and our custom
     `User-Agent`
     """
 
-    printer('Timeout set to %d' % timeout, debug=True)
+    printer(f'Timeout set to {timeout}', debug=True)
 
     if source_address:
         source_address_tuple = (source_address, 0)
-        printer('Binding to source address: %r' % (source_address_tuple,),
-                debug=True)
+        printer(
+            f'Binding to source address: {source_address_tuple!r}',
+            debug=True)
     else:
         source_address_tuple = None
 
@@ -617,7 +678,8 @@ def build_opener(source_address=None, timeout=10):
 
 
 class GzipDecodedResponse(GZIP_BASE):
-    """A file-like object to decode a response encoded with the gzip
+    """
+    A file-like object to decode a response encoded with the gzip
     method, as described in RFC 1952.
 
     Largely copied from ``xmlrpclib``/``xmlrpc.client`` and modified
@@ -677,14 +739,13 @@ def build_user_agent():
 
     ua_tuple = (
         'Mozilla/5.0',
-        '(%s; U; %s; en-us)' % (platform.platform(),
-                                platform.architecture()[0]),
-        'Python/%s' % platform.python_version(),
+        f'({platform.platform()}; U; {platform.architecture()[0]}; en-us)',
+        f'Python/{platform.python_version()}',
         '(KHTML, like Gecko)',
-        'speedtest-cli/%s' % __version__
+        f'speedtest-cli/{__version__}'
     )
     user_agent = ' '.join(ua_tuple)
-    printer('User-Agent: %s' % user_agent, debug=True)
+    printer(f'User-Agent: {user_agent}', debug=True)
     return user_agent
 
 
@@ -955,9 +1016,13 @@ class SpeedtestResults(object):
         else:
             self.server = server
         self.client = client or {}
-
         self._share = None
-        self.timestamp = '%sZ' % datetime.datetime.now(datetime.UTC).isoformat()
+        self.timestamp = (
+            datetime.datetime.now(datetime.UTC)
+            .replace(microsecond=0)
+            .isoformat()
+            .replace('+00:00', 'Z')
+        )
         self.bytes_received = 0
         self.bytes_sent = 0
 
@@ -983,27 +1048,25 @@ class SpeedtestResults(object):
         ping = int(round(self.ping, 0))
         upload = int(round(self.upload / 1000.0, 0))
 
-        # Build the request to send results back to speedtest.net
-        # We use a list instead of a dict because the API expects parameters
-        # in a certain order
         api_data = [
-            'recommendedserverid=%s' % self.server['id'],
-            'ping=%s' % ping,
+            f'recommendedserverid={self.server["id"]}',
+            f'ping={ping}',
             'screenresolution=',
             'promo=',
-            'download=%s' % download,
+            f'download={download}',
             'screendpi=',
-            'upload=%s' % upload,
+            f'upload={upload}',
             'testmethod=http',
-            'hash=%s' % md5(('%s-%s-%s-%s' %
-                             (ping, upload, download, '297aae72'))
-                            .encode()).hexdigest(),
+            # f'hash={md5(f"{ping}-{upload}-{download}-297aae72".encode()).hexdigest()}',
+            f'hash={md5((
+                f"{ping}-{upload}-{download}-297aae72"
+            ).encode()).hexdigest()}',
             'touchscreen=none',
             'startmode=pingselect',
             'accuracy=1',
-            'bytesreceived=%s' % self.bytes_received,
-            'bytessent=%s' % self.bytes_sent,
-            'serverid=%s' % self.server['id'],
+            f'bytesreceived={self.bytes_received}',
+            f'bytessent={self.bytes_sent}',
+            f'serverid={self.server["id"]}',
         ]
 
         headers = {'Referer': 'http://c.speedtest.net/flash/speedtest.swf'}
@@ -1028,7 +1091,7 @@ class SpeedtestResults(object):
             raise ShareResultsSubmitFailure('Could not submit results to '
                                             'speedtest.net')
 
-        self._share = 'http://www.speedtest.net/result/%s.png' % resultid[0]
+        self._share = f'http://www.speedtest.net/result/{resultid[0]}.png'
 
         return self._share
 
