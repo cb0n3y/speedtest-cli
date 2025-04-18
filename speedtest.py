@@ -640,7 +640,8 @@ class SpeedtestHTTPSHandler(AbstractHTTPHandler):
 
 
 def build_opener(source_address=None, timeout=10):
-    """Function similar to ``urllib2.build_opener`` that will build
+    """
+    Function similar to ``urllib2.build_opener`` that will build
     an ``OpenerDirector`` with the explicit handlers we want,
     ``source_address`` for binding, ``timeout`` and our custom
     `User-Agent`
