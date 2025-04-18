@@ -750,10 +750,9 @@ def build_user_agent():
 
 
 def build_request(url, data=None, headers=None, bump='0', secure=False):
-    """Build a urllib2 request object
-
+    """
+    Build a urllib2 request object
     This function automatically adds a User-Agent header to all requests
-
     """
 
     if not headers:
