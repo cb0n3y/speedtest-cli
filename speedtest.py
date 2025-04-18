@@ -930,6 +930,15 @@ class HTTPUploaderData(object):
 
     @property
     def data(self):
+        """
+        Returns the pre-allocated data.
+
+        If the data has not been pre-allocated, the method will invoke the 
+        pre_allocate() method to allocate it before returning.
+
+        Returns:
+            The pre-allocated data.
+        """
         if not self._data:
             self.pre_allocate()
         return self._data
