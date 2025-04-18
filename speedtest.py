@@ -770,16 +770,16 @@ def build_request(url, data=None, headers=None, bump='0', secure=False):
         delim = '?'
 
     # WHO YOU GONNA CALL? CACHE BUSTERS!
-    final_url = '%s%sx=%s.%s' % (schemed_url, delim,
-                                 int(timeit.time.time() * 1000),
-                                 bump)
+    final_url = (
+         f'{schemed_url}{delim}x='
+         f'{int(timeit.time.time() * 1000)}.{bump}'
+    )
 
     headers.update({
         'Cache-Control': 'no-cache',
     })
 
-    printer('%s %s' % (('GET', 'POST')[bool(data)], final_url),
-            debug=True)
+    printer(f'{"POST" if data else "GET"} {final_url}', debug=True)
 
     return Request(final_url, data=data, headers=headers)
 
