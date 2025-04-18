@@ -987,27 +987,25 @@ class SpeedtestResults(object):
         ping = int(round(self.ping, 0))
         upload = int(round(self.upload / 1000.0, 0))
 
-        # Build the request to send results back to speedtest.net
-        # We use a list instead of a dict because the API expects parameters
-        # in a certain order
         api_data = [
-            'recommendedserverid=%s' % self.server['id'],
-            'ping=%s' % ping,
+            f'recommendedserverid={self.server["id"]}',
+            f'ping={ping}',
             'screenresolution=',
             'promo=',
-            'download=%s' % download,
+            f'download={download}',
             'screendpi=',
-            'upload=%s' % upload,
+            f'upload={upload}',
             'testmethod=http',
-            'hash=%s' % md5(('%s-%s-%s-%s' %
-                             (ping, upload, download, '297aae72'))
-                            .encode()).hexdigest(),
+            # f'hash={md5(f"{ping}-{upload}-{download}-297aae72".encode()).hexdigest()}',
+            f'hash={md5((
+                f"{ping}-{upload}-{download}-297aae72"
+            ).encode()).hexdigest()}',
             'touchscreen=none',
             'startmode=pingselect',
             'accuracy=1',
-            'bytesreceived=%s' % self.bytes_received,
-            'bytessent=%s' % self.bytes_sent,
-            'serverid=%s' % self.server['id'],
+            f'bytesreceived={self.bytes_received}',
+            f'bytessent={self.bytes_sent}',
+            f'serverid={self.server["id"]}',
         ]
 
         headers = {'Referer': 'http://c.speedtest.net/flash/speedtest.swf'}
